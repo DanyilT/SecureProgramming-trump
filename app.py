@@ -6,6 +6,7 @@ from sqlalchemy import text
 
 
 app = Flask(__name__)
+# Vulnerability: Hardcoded Secret Key
 app.secret_key = 'trump123'  # Set a secure secret key
 
 # Configure the SQLite database
@@ -48,10 +49,12 @@ def quotes():
 def sitemap():
     return render_template('sitemap.html')
     
+# Vulnerability: Broken Access Control vulnerability
 @app.route('/admin_panel')
 def admin_panel():
     return render_template('admin_panel.html')
 
+# Vulnerability: Open Redirect vulnerability
 # Route to handle redirects based on the destination query parameter
 @app.route('/redirect', methods=['GET'])
 def redirect_handler():
@@ -63,6 +66,7 @@ def redirect_handler():
         return "Invalid destination", 400
 
 
+# Vulnerability: XSS vulnerability
 @app.route('/comments', methods=['GET', 'POST'])
 def comments():
     if request.method == 'POST':
@@ -80,6 +84,7 @@ def comments():
     comments = db.session.execute(comments_query).fetchall()
     return render_template('comments.html', comments=comments)
 
+# Vulnerability: Path Traversal vulnerability
 @app.route('/download', methods=['GET'])
 def download():
     # Get the filename from the query parameter
@@ -111,6 +116,7 @@ def download_page():
     return render_template('download.html')
 
 
+# Vulnerability: Insecure Direct Object Reference (IDOR) vulnerability
 @app.route('/profile/<int:user_id>', methods=['GET'])
 def profile(user_id):
     query_user = text(f"SELECT * FROM users WHERE id = {user_id}")
@@ -124,6 +130,7 @@ def profile(user_id):
         return "User not found or unauthorized access.", 403
 from flask import request
 
+# Vulnerability: XSS vulnerability
 @app.route('/search', methods=['GET'])
 def search():
     query = request.args.get('query')
@@ -133,6 +140,7 @@ def search():
 def forum():
     return render_template('forum.html')
 
+# Vulnerability: SQL Injection
 # Add login route
 @app.route('/login', methods=['GET', 'POST'])
 def login():
