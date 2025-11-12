@@ -30,7 +30,8 @@
     <h3>All Comments</h3>
     <ul>
         {% for comment in comments %}
-            <li><strong>{{ comment.username }}</strong>: {{ comment.text|safe }}</li>
+            <!--FIXED: Stored XSS by removing |safe attribute-->
+            <li><strong>{{ comment.username }}</strong>: {{ comment.text }}</li>
         {% endfor %}
     </ul>
 {% endblock %}
