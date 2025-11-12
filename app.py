@@ -86,14 +86,16 @@ def download():
     file_name = request.args.get('file', '')
 
     # Set base directory to where your docs folder is located
-    base_directory = os.path.join(os.path.dirname(__file__), 'docs')
+    # FIXED: Fixed Path Traversal by validating the file path
+    base_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), 'docs'))
 
     # Construct the file path to attempt to read the file
     file_path = os.path.abspath(os.path.join(base_directory, file_name))
 
     # Ensure that the file path is within the base directory
-    #if not file_path.startswith(base_directory):
-     #   return "Unauthorized access attempt!", 403
+    # FIXED: Fixed Path Traversal by validating the file path
+    if not file_path.startswith(base_directory + os.sep):
+        return "Unauthorized access attempt!", 403
 
     # Try to open the file securely
     try:
