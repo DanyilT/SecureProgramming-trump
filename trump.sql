@@ -50,3 +50,12 @@ CREATE TABLE comments (
     `username` TEXT NOT NULL,
 	`text` TEXT NOT NULL
 );
+
+--FIXED: broken access control
+--created table that stores admin credentials
+CREATE TABLE IF NOT EXISTS admins(
+  userid INTEGER PRIMARY KEY
+);
+
+--added id of one user to make him admin
+INSERT INTO admins (userid) SELECT id FROM users WHERE username = 'Holmes';

@@ -48,9 +48,20 @@ def quotes():
 def sitemap():
     return render_template('sitemap.html')
     
+#FIXED: broken access control
 @app.route('/admin_panel')
 def admin_panel():
-    return render_template('admin_panel.html')
+    user = session.get('user_id')
+    if user:
+        q = text('SELECT userid FROM admins WHERE userid = :session_user_id')
+        isadmin = db.session.execute(q, {'session_user_id': user}).fetchone()
+        if isadmin:
+            return render_template('admin_panel.html')
+        else:
+            return "Current user is not admin!", 403
+    else:
+        return "User not logged in!", 403
+
 
 # Route to handle redirects based on the destination query parameter
 @app.route('/redirect', methods=['GET'])
@@ -58,7 +69,18 @@ def redirect_handler():
     destination = request.args.get('destination')
 
     if destination:
-        return redirect(destination)
+        # FIXED: Fixed Open Redirect by parsing the URL and ensuring it is internal, using urlparse
+        from urllib.parse import urlparse
+        parsed = urlparse(destination)
+        if parsed.scheme == '' and parsed.netloc == '':
+            destination = parsed.path
+            if parsed.query:
+                destination += '?' + parsed.query
+            if parsed.fragment:
+                destination += '#' + parsed.fragment
+            return redirect(destination)
+        else:
+            return "Invalid destination - only internal redirects are allowed", 400
     else:
         return "Invalid destination", 400
 
@@ -86,14 +108,16 @@ def download():
     file_name = request.args.get('file', '')
 
     # Set base directory to where your docs folder is located
-    base_directory = os.path.join(os.path.dirname(__file__), 'docs')
+    # FIXED: Fixed Path Traversal by validating the file path
+    base_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), 'docs'))
 
     # Construct the file path to attempt to read the file
     file_path = os.path.abspath(os.path.join(base_directory, file_name))
 
     # Ensure that the file path is within the base directory
-    #if not file_path.startswith(base_directory):
-     #   return "Unauthorized access attempt!", 403
+    # FIXED: Fixed Path Traversal by validating the file path
+    if not file_path.startswith(base_directory + os.sep):
+        return "Unauthorized access attempt!", 403
 
     # Try to open the file securely
     try:
@@ -119,12 +143,14 @@ def profile(user_id):
     if session['user_id'] != user_id:
         return redirect(url_for('profile', user_id=session['user_id']))
 
-    query_user = text(f"SELECT * FROM users WHERE id = {user_id}")
-    user = db.session.execute(query_user).fetchone()
+    # FIXED: Fixed SQL Injection by using parameterized queries
+    query_user = text("SELECT * FROM users WHERE id = :user_id")
+    user = db.session.execute(query_user, {'user_id': user_id}).fetchone()
 
     if user:
-        query_cards = text(f"SELECT * FROM carddetail WHERE id = {user_id}")
-        cards = db.session.execute(query_cards).fetchall()
+        # FIXED: Fixed SQL Injection by using parameterized queries
+        query_cards = text("SELECT * FROM carddetail WHERE id = :user_id")
+        cards = db.session.execute(query_cards, {'user_id': user_id}).fetchall()
         return render_template('profile.html', user=user, cards=cards)
     else:
         return "User not found or unauthorized access.", 403
@@ -146,8 +172,9 @@ def login():
         username = request.form['username']
         password = request.form['password']
 
-        query = text(f"SELECT * FROM users WHERE username = '{username}' AND password = '{password}'")
-        user = db.session.execute(query).fetchone()
+        # FIXED: Fixed SQL Injection by using parameterized queries
+        query = text("SELECT * FROM users WHERE username = :username AND password = :password")
+        user = db.session.execute(query, {'username': username, 'password': password}).fetchone()
 
         if user:
             session['user_id'] = user.id
