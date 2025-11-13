@@ -113,6 +113,12 @@ def download_page():
 
 @app.route('/profile/<int:user_id>', methods=['GET'])
 def profile(user_id):
+    # FIXED: Fixed Insecure Direct Object Reference (IDOR) by validating user authorization
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    if session['user_id'] != user_id:
+        return redirect(url_for('profile', user_id=session['user_id']))
+
     query_user = text(f"SELECT * FROM users WHERE id = {user_id}")
     user = db.session.execute(query_user).fetchone()
 
