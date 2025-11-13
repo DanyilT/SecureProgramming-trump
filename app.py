@@ -48,9 +48,20 @@ def quotes():
 def sitemap():
     return render_template('sitemap.html')
     
+#FIXED: broken access control
 @app.route('/admin_panel')
 def admin_panel():
-    return render_template('admin_panel.html')
+    user = session.get('user_id')
+    if user:
+        q = text('SELECT userid FROM admins WHERE userid = :session_user_id')
+        isadmin = db.session.execute(q, {'session_user_id': user}).fetchone()
+        if isadmin:
+            return render_template('admin_panel.html')
+        else:
+            return "Current user is not admin!", 403
+    else:
+        return "User not logged in!", 403
+
 
 # Route to handle redirects based on the destination query parameter
 @app.route('/redirect', methods=['GET'])
