@@ -58,7 +58,18 @@ def redirect_handler():
     destination = request.args.get('destination')
 
     if destination:
-        return redirect(destination)
+        # FIXED: Fixed Open Redirect by parsing the URL and ensuring it is internal, using urlparse
+        from urllib.parse import urlparse
+        parsed = urlparse(destination)
+        if parsed.scheme == '' and parsed.netloc == '':
+            destination = parsed.path
+            if parsed.query:
+                destination += '?' + parsed.query
+            if parsed.fragment:
+                destination += '#' + parsed.fragment
+            return redirect(destination)
+        else:
+            return "Invalid destination - only internal redirects are allowed", 400
     else:
         return "Invalid destination", 400
 
