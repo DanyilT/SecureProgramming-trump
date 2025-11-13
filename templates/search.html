@@ -12,6 +12,7 @@
     </form>
 
     {% if query %}
-        <h3>Search results for: {{ query|safe }}</h3>
+        <!--FIXED: Reflected XSS by removing |safe attribute-->
+        <h3>Search results for: {{ query }}</h3>
     {% endif %}
 {% endblock %}
