@@ -13,9 +13,10 @@ app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY')
 
 # Configure the SQLite database
-db_path = os.path.join(os.path.dirname(__file__), 'trump.db')
+# FIXED: Database Configuration
+database_path = os.environ.get('DATABASE_PATH', 'trump.db')
+db_path = os.path.join(os.path.dirname(__file__), database_path)
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize the database
 db = SQLAlchemy(app)
