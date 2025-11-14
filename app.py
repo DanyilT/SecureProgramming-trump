@@ -205,4 +205,6 @@ if __name__ == '__main__':
     initialize_database()  # Initialize the database on application startup if it doesn't exist
     with app.app_context():
         db.create_all()  # Create tables based on models if they don't already exist
-    app.run(debug=True)
+    # FIXED: Fixed Debug Mode Enabled
+    debug = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
+    app.run(debug=debug)  # Use environment variable
