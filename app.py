@@ -170,6 +170,8 @@ def search():
 def forum():
     return render_template('forum.html')
 
+import bcrypt
+
 # Add login route
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -178,16 +180,17 @@ def login():
         password = request.form['password']
 
         # FIXED: Fixed SQL Injection by using parameterized queries
-        query = text("SELECT * FROM users WHERE username = :username AND password = :password")
-        user = db.session.execute(query, {'username': username, 'password': password}).fetchone()
+        query = text("SELECT * FROM users WHERE username = :username")
+        user = db.session.execute(query, {'username': username}).fetchone()
 
-        if user:
+        # FIXED: plain text password storage using hashing
+        if user and bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
             session['user_id'] = user.id
             flash('Login successful!', 'success')
             return redirect(url_for('profile', user_id=user.id))
-        else:
-            error = 'Invalid Credentials. Please try again.'
-            return render_template('login.html', error=error)
+
+        error = 'Invalid Credentials. Please try again.'
+        return render_template('login.html', error=error)
 
     return render_template('login.html')
 
@@ -200,6 +203,22 @@ def logout():
     return redirect(url_for('index'))
     
 from flask import session
+
+#FIXED: plain text password storage using hashing
+def hashPasswordsInDB(db):
+    q = text('SELECT id, password FROM users')
+    rows = db.session.execute(q).fetchall()
+
+    for row in rows:
+        id = row[0]
+        password = row[1]
+        if not password.startswith("$2b$"):
+            hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+            q = text('UPDATE users SET password = :hash WHERE id = :id')
+            db.session.execute(q, {'hash' : hash.decode('utf-8'), 'id' : id})
+
+    db.session.commit()
+
 
 if __name__ == '__main__':
     initialize_database()  # Initialize the database on application startup if it doesn't exist
