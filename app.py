@@ -1,12 +1,16 @@
 import os
 import sqlite3
+from dotenv import load_dotenv
 from flask import Flask, render_template, request, Response, redirect, url_for, flash, session, send_from_directory, abort, send_file
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import text
 
+# Load .env file
+load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = 'trump123'  # Set a secure secret key
+# FIXED: Use environment variable for secret key
+app.secret_key = os.environ.get('SECRET_KEY')
 
 # Configure the SQLite database
 db_path = os.path.join(os.path.dirname(__file__), 'trump.db')
@@ -188,9 +192,6 @@ def login():
         return render_template('login.html', error=error)
 
     return render_template('login.html')
-
-
-
 
 
 # Logout route
