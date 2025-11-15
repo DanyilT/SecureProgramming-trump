@@ -156,7 +156,25 @@ def profile(user_id):
         # FIXED: Fixed SQL Injection by using parameterized queries
         query_cards = text("SELECT * FROM carddetail WHERE id = :user_id")
         cards = db.session.execute(query_cards, {'user_id': user_id}).fetchall()
-        return render_template('profile.html', user=user, cards=cards)
+
+        # FIXED: Fixed Sensitive Data Exposure by masking credit card information
+        masked_cards = []
+        for card in cards:
+            # Mask card number - show only last 4 digits
+            card_number = str(card.cardno).replace(' ', '').replace('-', '')
+            masked_number = '**** **** **** ' + card_number[-4:] if len(card_number) >= 4 else '****'
+
+            # Mask CVV completely
+            masked_cvv = '***'
+
+            # Keep expiry date visible (it's less sensitive)
+            masked_cards.append({
+                'id': card.id,
+                'cardno': masked_number,
+                'cvv': masked_cvv,
+                'expiry': card.expiry
+            })
+        return render_template('profile.html', user=user, cards=masked_cards)
     else:
         return "User not found or unauthorized access.", 403
 from flask import request
