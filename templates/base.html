@@ -26,7 +26,17 @@
 				{% endif %}
 				<li>
 					{% if 'user_id' in session %}
-						<a href="{{ url_for('logout') }}">Logout</a>
+						<!-- FIXED: CSRF - Changed logout to POST form with CSRF token -->
+						<a href="#" id="logout-link">Logout</a>
+						<form id="logout-form" method="POST" action="{{ url_for('logout') }}" style="display:none;">
+						    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+						</form>
+						<script>
+						document.getElementById('logout-link').addEventListener('click', function(e){
+						    e.preventDefault();
+						    document.getElementById('logout-form').submit();
+						});
+						</script>
 					{% else %}
 						<a href="{{ url_for('login') }}">Login</a>
 					{% endif %}

@@ -12,6 +12,8 @@
     <h2>Leave a comment for our great leader!</h2>
 
     <form method="POST" action="{{ url_for('comments') }}" style="max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #ccc; border-radius: 10px; background-color: #f9f9f9;">
+        <!-- FIXED: CSRF Protection -->
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         <div style="margin-bottom: 15px;">
             <label for="username" style="display: block; font-weight: bold; margin-bottom: 5px;">Name:</label>
             <input type="text" id="username" name="username" required style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px;">

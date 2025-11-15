@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from flask import Flask, render_template, request, Response, redirect, url_for, flash, session, send_from_directory, abort, send_file
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import text
+from flask_wtf.csrf import CSRFProtect
 
 # Load .env file
 load_dotenv()
@@ -11,6 +12,9 @@ load_dotenv()
 app = Flask(__name__)
 # FIXED: Use environment variable for secret key
 app.secret_key = os.environ.get('SECRET_KEY')
+
+# FIXED: CSRF Protection
+csrf = CSRFProtect(app)
 
 # Configure the SQLite database
 # FIXED: Database Configuration
@@ -214,7 +218,8 @@ def login():
 
 
 # Logout route
-@app.route('/logout')
+# FIXED: CSRF - Changed logout to POST method to prevent CSRF attacks
+@app.route('/logout', methods=['POST'])
 def logout():
     session.pop('user_id', None)  # Remove user session
     flash('You were successfully logged out', 'success')
